@@ -1,6 +1,8 @@
 # Construct WideWorldImporters OLTP Database
 
-The scripts in this folder are used to construct the WideWorldImporters database from scratch on SQL Server or Azure SQL Database.
+The scripts in this folder are used to construct the WideWorldImporters database from scratch on SQL Server or Azure SQL Database. It is possible to vary the data size (see step 6 in the instructions below).
+
+A pre-created version of the database is available for download as part of the latest release of the sample: [wide-world-importers-release](http://go.microsoft.com/fwlink/?LinkID=800630).
 
 ### Contents
 
@@ -16,12 +18,11 @@ The scripts in this folder are used to construct the WideWorldImporters database
 ## About this sample
 
 <!-- Delete the ones that don't apply -->
-1. **Applies to:** SQL Server 2016 (or higher), Azure SQL Database [testing and modified instructions are TBD]
+1. **Applies to:** SQL Server 2016 (SP1 or later is recommended), Azure SQL Database
 1. **Key features:** Core database features
 1. **Workload:** OLTP
 1. **Programming Language:** T-SQL
-1. **Authors:** Greg Low, Jos de Bruijn
-1. **Update history:** 25 May 2016 - initial revision
+1. **Authors:** Greg Low, Denzil Ribeiro, Jos de Bruijn
 
 <a name=before-you-begin></a>
 
@@ -33,7 +34,7 @@ To run this sample, you need the following prerequisites.
 
 <!-- Examples -->
 1. SQL Server 2016 (or higher) or an Azure SQL Database. 
-2. SQL Server Management Studio, preferably 2016 April Preview or later (version >= 13.0.14000.36)
+2. SQL Server Management Studio, 2016 June release or later (version >= 13.0.15000.23)
 
 
 <a name=run-this-sample></a>
@@ -57,13 +58,16 @@ Note that each time the databases are reconstructed from empty, they will contai
 5. Execute the script **5-wwi-load-seed-data.sql**. This script populates the seed data required for the database. It will typically take a few minutes to execute.
 
 6. Execute the script **6-wwi-data-simulation.sql**. This script runs data simulation to populate the transaction tables. It can take 20-30 minutes to execute.
-
-The statements in this script remove the temporal nature of the tables, and implements a series of triggers. They then emulate typical activities that would occur during each day. Finally, they remove the triggers and re-establishes the temporal tables. You can see the progress of the simulation in the Messages tab in SSMS as the query executes. (IsSilentMode = 1 produces just date output if AreDatesPrinted = 1. When 0, it produces much more detailed output about each task being undertaken).
+<br/><br/>The statements in this script remove the temporal nature of the tables, and implements a series of triggers. They then emulate typical activities that would occur during each day. Finally, they remove the triggers and re-establishes the temporal tables. You can see the progress of the simulation in the Messages tab in SSMS as the query executes. (AreDatesPrinted controls whether dates are printed to the messages window as data is generated. IsSilentMode controls whether detailed output is printed. IsSilentMode = 1 produces just date output if AreDatesPrinted = 1.).
 Note that a different outcome is produced each time it is run as it uses many random values.
 StartDate and EndDate cover the period for generation. Other code populates the 2012 period when expanding the columnstore tables so do not populate back into 2012 or earlier with this procedure. The EndDate must also be at or before the current date as temporal tables do not allow future dates.
 You can configure the amount of data produced by modifying the number of orders per day. The default is 60 orders and produces a reasonable OLTP database size of around 93MB compressed. You are also able to configure how busy Saturday and Sunday are compared to normal Monday to Friday working days, as a percentage. The suggested values are 50% for Saturday and 0% for Sunday.
 
-7. Execute the script **7-wwi-enable-full-features.sql**. This script enables features not available in standard edition. Skip this step when creating the sample database targeting standard edition.
+7. (optional) Execute the script **7-wwi-enable-full-features.sql**. This script enables features for the full version of the sample database. 
+
+  - When using SQL Server 2016 SP1 (or a later servicing release), the full feature are supported across all editions of SQL Server, including Standard and Express edition.
+  - With Azure SQL Database, at the time of writing, some of the full features are supported only in Premium-tier databases, so you should skip this step when targeting a Standard-tier database.
+  - Note: Full-Text Indexing should be installed in order to configure the full-text options. If the feature is not installed, you will receive a warning message when running the script.
 
 8. Execute the script **8-wwi-backup.sql**. This creates a backup of the database. Make sure to adjust the file path of the backup to match your folder structure. (A sample restore script **9-wwi-restore.sql** is also provided).
 
